@@ -1,0 +1,47 @@
+"""Output schema. Names follow the public RESO Data Dictionary; X_ columns are this tool's own."""
+
+RESO_FIELDS = [
+    "ListingId",
+    "ParcelNumber",
+    "UnparsedAddress",
+    "StreetNumber",
+    "StreetDirPrefix",
+    "StreetName",
+    "StreetSuffix",
+    "StreetDirSuffix",
+    "UnitNumber",
+    "City",
+    "StateOrProvince",
+    "PostalCode",
+    "CountyOrParish",
+    "SubdivisionName",
+    "PropertyType",
+    "PropertySubType",
+    "StandardStatus",
+    "BedroomsTotal",
+    "BathroomsFull",
+    "BathroomsHalf",
+    "BathroomsTotalInteger",
+    "LivingArea",
+    "LivingAreaUnits",
+    "LotSizeSquareFeet",
+    "LotSizeAcres",
+    "YearBuilt",
+    "PropertyCondition",
+    "OriginalListPrice",
+    "ListPrice",
+    "ClosePrice",
+    "TaxAssessedValue",
+    "ListingContractDate",
+    "CloseDate",
+]
+EXTRA_FIELDS = ["X_PropertyKey", "X_PricePerSqFt", "X_Flags", "X_Sources", "X_SourceCount"]
+CLEAN_COLUMNS = [
+    "X_PropertyKey",
+    *RESO_FIELDS,
+    "X_PricePerSqFt",
+    "X_Flags",
+    "X_Sources",
+    "X_SourceCount",
+]
+RECORD_COLUMNS = ["SourceFile", "SourceRow", *RESO_FIELDS]
