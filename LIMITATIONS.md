@@ -36,6 +36,11 @@ What listing-data-normalizer does not do, or does poorly. Read this before trust
   Check them against your MLS before loading the output into one.
 - **Prices under $1,000 are treated as errors** (nominal $1 transfers, typos) and left blank.
 
+- **The header row is found by looking in the first 25 rows** for one with at least 3 known
+  headers. A report whose real header uses only unusual names is read from its first non-empty
+  row instead; use `listnorm map` and `--mapping` to fix that. Only the first sheet of an Excel
+  file is read. A one-cell row containing the word total, page or records is skipped as a footer.
+
 ## Addresses
 
 - **No geocoding, no USPS lookup.** A clean-looking address for a street that does not exist comes
@@ -64,6 +69,13 @@ What listing-data-normalizer does not do, or does poorly. Read this before trust
   Conflicts column. Blank fields are filled from the other rows. Property facts (beds, baths,
   area, lot, year) blank on one event are filled from the property's other events and flagged
   `ATTR_FILLED:<field>`. Condition is never filled across events, because it changes.
+
+## Comps shortlist
+
+- **It is a filter, not a selection of comparables.** It keeps closed sales with a price and a
+  living area, optionally since a date and in given ZIP codes, and drops flagged rows. It does not
+  rank by similarity, adjust prices or pick comparables; that is the appraiser's job.
+- **ZIP is the only location filter.** There is no distance or geocoding.
 
 ## Outliers
 

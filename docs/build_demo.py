@@ -3,14 +3,14 @@
 from __future__ import annotations
 
 import argparse
-import csv
 import html
 import re
 from datetime import date
 from pathlib import Path
 from typing import Any
 
-from listing_data_normalizer.core import DISCLAIMER, normalize
+from listing_data_normalizer.core import COMPS_COLUMNS, DISCLAIMER, normalize, select_comps
+from listing_data_normalizer.io import read_table
 
 ROOT = Path(__file__).resolve().parent.parent
 FILES = ["mls_a.csv", "mls_b.csv", "county_assessor.csv", "comps_list.xlsx"]
@@ -58,29 +58,40 @@ table{border-collapse:collapse;width:100%;font-size:12.5px}
 th{text-align:left;padding:10px;color:var(--ink2);font-weight:500;white-space:nowrap}
 td{padding:8px 10px;border-top:1px solid var(--edge);white-space:nowrap}
 .panel{display:none}.panel.on{display:block}
+.find{width:100%;max-width:380px;margin:0 0 10px;padding:8px 14px;border-radius:999px;border:1px solid var(--edge);background:var(--card);color:var(--ink);font:inherit}
+tr.flag td{background:rgba(226,88,60,.16)}
+h3{margin:14px 0 6px;font-size:13px;color:var(--ink2);font-weight:500}
 .note{color:var(--ink2);font-size:12.5px;margin:8px 0 0}
 """
 
 
-def table(cols: list[str], rows: list[dict[str, Any]], limit: int = 30) -> str:
+def table(cols: list[str], rows: list[dict[str, Any]], limit: int = 400, find: bool = True) -> str:
     def cell(v: Any) -> str:
         return html.escape("" if v is None else v.isoformat() if isinstance(v, date) else str(v))
 
     head = "".join(f"<th>{html.escape(c)}</th>" for c in cols)
     body = "".join(
-        "<tr>" + "".join(f"<td>{cell(r.get(c))}</td>" for c in cols) + "</tr>" for r in rows[:limit]
+        f'<tr class="{"flag" if "PPSF" in str(r.get("X_Flags", "")) else ""}">'
+        + "".join(f"<td>{cell(r.get(c))}</td>" for c in cols)
+        + "</tr>"
+        for r in rows[:limit]
     )
-    more = (
-        f'<p class="note">Showing {min(limit, len(rows))} of {len(rows)} rows.</p>' if rows else ""
+    box = (
+        '<input class="find" type="search" placeholder="Filter rows (address, status, flag)" '
+        'aria-label="Filter rows">'
+        if find
+        else ""
     )
-    return f'<div class="scroll"><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>{more}'
+    more = f'<p class="note">{len(rows)} rows. Rows with a price-per-sq-ft flag are tinted.</p>'
+    return (
+        f'{box}<div class="scroll"><table><thead><tr>{head}</tr></thead>'
+        f"<tbody>{body}</tbody></table></div>{more if rows else ''}"
+    )
 
 
 def messy_preview(path: Path, n: int = 6) -> str:
-    with path.open(newline="", encoding="utf-8") as fh:
-        rows = list(csv.DictReader(fh))[:n]
-    cols = list(rows[0])
-    return table(cols, [dict(r) for r in rows], n)
+    headers, rows, _ = read_table(path)
+    return f"<h3>{html.escape(path.name)}</h3>" + table(headers, rows[:n], n, find=False)
 
 
 def bench_table() -> str:
@@ -130,6 +141,7 @@ def build(out: Path) -> None:
             ],
             res.changes,
         ),
+        "Comps": table(COMPS_COLUMNS, select_comps(res.clean, date(2025, 1, 1))),
         "Benchmark": bench_table(),
     }
     nav = "".join(
@@ -153,7 +165,8 @@ named after the RESO Data Dictionary. {s["duplicates_removed"]} duplicates were 
 <script>document.querySelectorAll('.bar button').forEach(b=>b.addEventListener('click',()=>{{
 document.querySelectorAll('.bar button').forEach(x=>x.setAttribute('aria-pressed',x===b));
 document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',String(i)===b.dataset.p));}}));</script>
-<script>(()=>{{const i=['messy','clean','mapping','duplicates','changes','benchmark'].indexOf(location.hash.slice(1));if(i>0)document.querySelectorAll('.bar button')[i].click();}})();</script></body></html>"""
+<script>document.querySelectorAll('.find').forEach(f=>f.addEventListener('input',()=>{{const q=f.value.toLowerCase();f.parentElement.querySelectorAll('tbody tr').forEach(r=>r.style.display=r.textContent.toLowerCase().includes(q)?'':'none');}}));</script>
+<script>(()=>{{const i=['messy','clean','mapping','duplicates','changes','comps','benchmark'].indexOf(location.hash.slice(1));if(i>0)document.querySelectorAll('.bar button')[i].click();}})();</script></body></html>"""
     out.mkdir(parents=True, exist_ok=True)
     (out / "index.html").write_text(page, encoding="utf-8")
 

@@ -268,6 +268,11 @@ def _candidates(header: str) -> list[str]:
     return out
 
 
+def known_header_count(cells: list[str]) -> int:
+    """How many of these cells look like headers this tool knows (exact spelling after cleanup)."""
+    return sum(1 for c in cells if any(x in _LOOKUP for x in _candidates(c)))
+
+
 def map_headers(
     source: str, headers: list[str], overrides: dict[str, str] | None = None
 ) -> list[HeaderMatch]:

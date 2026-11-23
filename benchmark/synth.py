@@ -14,6 +14,7 @@ from typing import Any
 from openpyxl import Workbook
 
 TODAY = date(2026, 11, 22)
+TITLED = {"county_assessor.csv"}
 STREETS = [
     "Bramley",
     "Quillon",
@@ -563,9 +564,14 @@ def build(n: int, seed: int, outdir: Path) -> dict[str, Any]:
         headers = list(dict.fromkeys(k for r in rows for k in r[0]))
         if name.endswith(".csv"):
             with (outdir / name).open("w", newline="", encoding="utf-8") as fh:
+                if name in TITLED:  # a county report: title lines above the table, footer below
+                    fh.write("Invented County Property Report\n")
+                    fh.write("Run date 11/20/2026\n\n")
                 w = csv.DictWriter(fh, headers)
                 w.writeheader()
                 w.writerows(r[0] for r in rows)
+                if name in TITLED:
+                    fh.write(f"Total records: {len(rows)}\n")
         else:
             wb = Workbook()
             ws = wb.active
@@ -573,7 +579,7 @@ def build(n: int, seed: int, outdir: Path) -> dict[str, Any]:
             for r in rows:
                 ws.append([r[0].get(h) for h in headers])
             wb.save(outdir / name)
-        for i, (_raw, exp, pid, eid, junks) in enumerate(rows, start=2):
+        for i, (_raw, exp, pid, eid, junks) in enumerate(rows, start=5 if name in TITLED else 2):
             truth[f"{name}|{i}"] = {
                 "pid": pid,
                 "eid": eid,

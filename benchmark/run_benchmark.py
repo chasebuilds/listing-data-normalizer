@@ -230,7 +230,7 @@ def run(n: int, seed: int) -> str:
         "listing, a listing, a price cut, a sale). About 3% are priced 2.8x to 5x above or "
         "below their town on purpose.",
         "2. Write them out the way four systems would: two MLS-style exports with different "
-        "headers (one in square meters, one repeating some rows), a county assessor file "
+        "headers (one in square meters, one repeating some rows), a county assessor report with title lines and a footer "
         "(last sale only, some units dropped, areas that disagree by up to 5%), and a spreadsheet "
         "comps list in Excel (sales only, `3/2.5` style bed/bath, dates as real dates, text and "
         "serial numbers).",

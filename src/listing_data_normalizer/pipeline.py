@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
@@ -13,6 +14,7 @@ from listing_data_normalizer.headers import HeaderMatch, map_headers
 from listing_data_normalizer.io import read_table
 
 Record = dict[str, Any]
+_FOOTER = re.compile(r"\b(total|page \d+|end of report|records?)\b", re.I)
 
 
 @dataclass
@@ -189,12 +191,13 @@ def normalize_files(
     today = today or date.today()
     res = Result()
     for path in paths:
-        headers, rows = read_table(path)
+        headers, rows, first = read_table(path)
         matches = map_headers(path.name, headers, overrides)
         res.mapping += matches
-        for i, raw in enumerate(rows, start=2):
-            if all(p.is_blank(v) for v in raw.values()):
-                continue
+        for i, raw in enumerate(rows, start=first):
+            filled = [str(v) for v in raw.values() if not p.is_blank(v)]
+            if not filled or (len(filled) == 1 and _FOOTER.search(filled[0])):
+                continue  # blank line, or a "Total" or "Page 1 of 3" footer
             rec, issues = normalize_row(path.name, i, raw, matches, today)
             res.records.append(rec)
             res.review += issues

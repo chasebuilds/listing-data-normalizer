@@ -2,17 +2,23 @@
 
 [![ci](https://github.com/chasebuilds/listing-data-normalizer/actions/workflows/ci.yml/badge.svg)](https://github.com/chasebuilds/listing-data-normalizer/actions/workflows/ci.yml) ![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue) [![MIT license](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Cleans messy residential property exports into one table: MLS-style listing exports, county assessor CSVs and spreadsheet comps lists (CSV or Excel). Column names in the output follow the public [RESO Data Dictionary](https://www.reso.org/data-dictionary/) (`ListPrice`, `ClosePrice`, `LivingArea`, `BedroomsTotal`, `StandardStatus` and so on). Headers are mapped with a review sheet, units are converted, bed/bath text is parsed, addresses are standardized, the same property across sources is merged, price changes are kept as history, and prices far from the neighborhood are flagged. Everything runs offline.
+**Turns the messy property exports a real estate office, appraiser or county assessor receives into one clean table.** Feed it an MLS export, a county assessor CSV and a comps spreadsheet. Get back one file with standard [RESO Data Dictionary](https://www.reso.org/data-dictionary/) column names, every duplicate merged, every price change kept as history, every value it could not read listed for review, and a closed-sales comps shortlist.
 
 **Live demo (synthetic data only):** https://chasebuilds.github.io/listing-data-normalizer/
 
 ![Clean sheet built from four messy invented exports](docs/preview.png)
 
+- **Reads what offices really have:** CSV or Excel, report title lines above the table, "Total" footers, repeated column names, square meters, acres, `3/2.5` bed/bath text, `$249.9K` prices, Excel date serials and common date formats.
+- **Shows its work:** a Mapping sheet for every header, a Review sheet for every value it could not read (left blank, never guessed), a Duplicates sheet saying which rows were merged and why.
+- **Keeps history:** the same house listed, price-cut, relisted and sold stays as separate events with the dollar and percent change between them.
+- **Flags, never decides:** price per sq ft far from the neighborhood gets a flag. Nothing is removed or valued.
+- **Runs offline** on your own machine. No account, no upload. Python 3.11+, MIT license.
+
 > **Not an appraisal.** This is an analysis and education tool for tidying data. A USPAP-compliant appraisal requires a licensed or certified appraiser. Nothing here estimates value or replaces that work.
 
 ## Measured result
 
-Four invented exports with known answers (two MLS styles, a county assessor file, an Excel comps list) were run through the tool and scored. The table is written by the benchmark script from a real run. Method, misses and limits: [BENCHMARK.md](BENCHMARK.md). The data was invented by the same author as the parsers, so treat the field accuracy as a regression guard. A real export has formats this generator never thought of; those go to the Review sheet.
+Four invented exports with known answers (two MLS styles, a county assessor report with title lines and a footer, an Excel comps list) were run through the tool and scored. The table is written by the benchmark script from a real run. Method, misses and limits: [BENCHMARK.md](BENCHMARK.md). The data was invented by the same author as the parsers, so treat the field accuracy as a regression guard. A real export has formats this generator never thought of; those go to the Review sheet.
 
 <!-- benchmark:start -->
 | Measure | Result |
@@ -65,7 +71,7 @@ The samples are 168 generated rows for 40 invented houses (`python -m benchmark.
 ...
 ```
 
-It writes `clean.csv`, `clean.parquet` (needs the `parquet` extra) and `listings.xlsx` with the sheets Clean, Review, Duplicates, Changes, Mapping and About.
+It writes `clean.csv`, `clean.parquet` (needs the `parquet` extra) and `listings.xlsx` with the sheets Clean, Review, Duplicates, Changes, Mapping and About (plus Comps when asked).
 
 A header the tool does not know can be mapped with a two-column CSV:
 
@@ -77,6 +83,21 @@ listnorm clean export.csv --mapping my_headers.csv -o out
 source_header,field
 Prop Cond,PropertyCondition
 ```
+
+Not sure what a file's headers will map to? Do a dry run. It writes every header with the field it matched, how, and a confidence; fill the blank `field` cells and pass the file back as `--mapping`:
+
+```
+listnorm map export.csv county.xlsx -o mapping.csv
+listnorm clean export.csv county.xlsx --mapping mapping.csv -o out
+```
+
+A comps shortlist of closed sales (a data filter, not a value opinion) can be written alongside the clean files. It keeps sales with a price and a living area, drops rows flagged as outliers or size problems unless `--keep-flagged` is given, and sorts newest first:
+
+```
+listnorm clean mls.csv assessor.csv --closed-since 2025-01-01 --zip 41501 --zip 41502 -o out
+```
+
+This adds `comps.csv` and a Comps sheet.
 
 Python:
 
