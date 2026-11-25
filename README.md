@@ -141,3 +141,11 @@ Read [LIMITATIONS.md](LIMITATIONS.md) before trusting a cleaned file. Short vers
 ## Data and license
 
 All sample and benchmark data is synthetic: invented streets, towns, parcel numbers and prices. No real owner, address or sale appears anywhere. Code is MIT, copyright Chase Builds. RESO and the RESO Data Dictionary belong to the Real Estate Standards Organization; this project only uses the public field names and is not affiliated with or certified by RESO.
+
+## More from Chase Builds
+
+- **[showing-route-planner](https://github.com/chasebuilds/showing-route-planner)**: Orders a day of showings around every listing window with the least driving. Works offline on a phone. ([live demo](https://chasebuilds.github.io/showing-route-planner/))
+- **[home-value-model](https://github.com/chasebuilds/home-value-model)**: 6.0% median error, 72.4% within 10%, on 718 later Ames, Iowa sales. ([live demo](https://chasebuilds.github.io/home-value-model/))
+- **[listing-kit](https://github.com/chasebuilds/listing-kit)**: One file becomes a listing website with gallery, map and flyer, plus a fair-housing wording checker. ([live demo](https://chasebuilds.github.io/listing-kit/))
+
+[All projects, sorted by industry](https://github.com/chasebuilds) · [chasebuilds.github.io](https://chasebuilds.github.io)
