@@ -1,0 +1,7 @@
+{
+  "title": "Listing Data Normalizer: Unify MLS, assessor and comps exports | Chase Builds",
+  "description": "Clean and unify messy MLS, county assessor and comps exports into one RESO-named schema, with a review sheet, duplicate history and outlier flags.",
+  "url": "https://chasebuilds.github.io/listing-data-normalizer/",
+  "image": "docs/preview.png",
+  "repo": "listing-data-normalizer"
+}
